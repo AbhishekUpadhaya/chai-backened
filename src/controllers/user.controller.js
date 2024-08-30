@@ -92,6 +92,7 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "user registered successfully"));
 });
 
+//login user
 const loginUser = asyncHandler(async (req, res) => {
   //req body -> data
   //username or email
@@ -146,6 +147,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+//logout user
 const logoutUser = asyncHandler(async (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
@@ -170,6 +172,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out"));
 });
 
+//refresh token
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
 
@@ -209,8 +212,121 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    throw new ApiError(401,error?.message || "Invalid refresh Token")
+    throw new ApiError(401, error?.message || "Invalid refresh Token");
   }
 });
 
-export { registerUser, loginUser, logoutUser,refreshAccessToken };
+//password change
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+
+  // if(newPassword !== confirmPassword){
+  //   throw new ApiError(402 ,"password not match")
+  // }
+
+  const user = await User.findById(req.user?._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Invalid password");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "password changed successfully"));
+});
+
+//get current user
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(200, req.user, "current user fetched successfully");
+});
+// update accoutn detail
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullName, email, phone } = req.body;
+
+  if (!fullName || !email) {
+    throw new ApiError(400, "Please fill all fields");
+  }
+
+  const user = User.findByIdAndUpdate(
+    req.user?._id, // this will  get from middleware
+    {
+      $set: {
+        fullName: fullName,
+        email: email,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "account details updated successfully"));
+});
+
+//update user avatar
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is missing");
+  }
+  const avatarUrl = await uploadOnCloudinary(avatarLocalPath); //it will return a  object
+
+  if (!avatarUrl.url) {
+    throw new ApiError(400, "Avatar upload failed");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    { $set: { avatar: avatarUrl.url } },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "avatar image updated successfully"));
+});
+
+//update user coverImage
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocal = req.file?.path;
+  if (!coverImageLocal) {
+    throw new ApiError(400, "coverImage file is missing");
+  }
+  const coverImageUrl = await uploadOnCloudinary(coverImageLocal);
+
+  if (!coverImageUrl.url) {
+    throw new ApiError(400, "coverImage upload failed");
+  }
+
+  const user = await findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: { coverImage: coverImageUrl.url },
+    },
+    { new: true }
+  ).select("-password");
+  
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "cover image updated successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateAccountDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
+};
