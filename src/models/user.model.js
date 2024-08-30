@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    fullname: {
+    fullName: {
       type: String,
       required: true,
       trim: true,
@@ -56,7 +56,7 @@ const UserSchema = new mongoose.Schema(
 
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  //if password is upadated by the user then we only hash the newly user entered password
+  //if password is upadated by the user then we only hash the newly user's entered password
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
@@ -70,13 +70,13 @@ UserSchema.methods.isPasswordCorrect = async function (password) {
 UserSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
-      //this is a pyload
+      //this is a payload
       _id: this.id,
       email: this.email,
       username: this.username,
       fullname: this.fullname,
     },
-    process.env.ACCESS_TOKEN_SECRET,
+    process.env.ACCESS_TOKEN_SECRET,//secret token 
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     }
