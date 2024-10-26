@@ -13,32 +13,37 @@ const videoSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      maxlength: 100,
     },
     description: {
-      type: String, 
+      type: String,
+      required: true,
+      maxlength: 500,
+    },
+    duration: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    views: {
+      type: Number,
+      default: 0,
+    },
+    isPublished: {
+      type: Boolean,
+      default: true,
+    },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-    duration:{
-        type:Number,
-        required:true,
-    },
-    views:{
-        type:Number,
-        default:0
-    },
-    isPublished:{
-        type:Boolean,
-        default:true
-    },
-    owner:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
-    }
   },
   {
     timestamps: true,
   }
 );
 
-videoSchema.plugin(mongooseAggregatePaginate)
+/*plugin  used to extend the functionality of mongoose schema*/
+videoSchema.plugin(mongooseAggregatePaginate);
 export const Video = mongoose.model("Video", videoSchema);

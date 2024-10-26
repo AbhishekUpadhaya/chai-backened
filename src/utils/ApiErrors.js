@@ -1,11 +1,14 @@
+//custom Api error class
+
 class ApiError extends Error {
+  //constructor
   constructor(
     statusCode,
     message = "Something went wrong",
     errors = [],
     stack = ""
   ) {
-    super(message);//passing message to parent class
+    super(message); //The super(message) call passes the message parameter to the parent Error class.
     this.statusCode = statusCode;
     this.data = null;
     this.message = message;
@@ -20,4 +23,4 @@ class ApiError extends Error {
   }
 }
 
-export {ApiError}
+export { ApiError };

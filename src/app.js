@@ -4,9 +4,13 @@ import cors from "cors";
 
 const app = express(); //initialising app
 
+
+
 app.use(
   cors({
+    //the origin option specifies which domain are allowed to access your API
     origin: process.env.CORS_ORIGIN,
+    //this options allow cookies and HTTP authentication to be includede in cross - origin requests
     credentials: true,
   })
 );
